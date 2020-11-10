@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="目的抽象工厂模式是一种创建型设计模式， 它能创建一系列相关的对象， 而无需指定其具体类。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="设计模式（三）—— 抽象工厂模式">
+<meta property="og:url" content="http://yoursite.com/2020/05/22/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%EF%BC%88%E4%B8%89%EF%BC%89%E2%80%94%E2%80%94-%E6%8A%BD%E8%B1%A1%E5%B7%A5%E5%8E%82%E6%A8%A1%E5%BC%8F/index.html">
+<meta property="og:site_name" content="sheny&#39;s blog">
+<meta property="og:description" content="目的抽象工厂模式是一种创建型设计模式， 它能创建一系列相关的对象， 而无需指定其具体类。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://refactoringguru.cn/images/patterns/diagrams/abstract-factory/problem-zh.png">
+<meta property="og:image" content="https://refactoringguru.cn/images/patterns/diagrams/abstract-factory/solution1.png">
+<meta property="og:image" content="https://refactoringguru.cn/images/patterns/diagrams/abstract-factory/solution2.png">
+<meta property="article:published_time" content="2020-05-22T07:41:53.000Z">
+<meta property="article:modified_time" content="2020-05-24T08:34:10.000Z">
+<meta property="article:author" content="wshenY">
+<meta property="article:tag" content="设计模式">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://refactoringguru.cn/images/patterns/diagrams/abstract-factory/problem-zh.png">
+
+<link rel="canonical" href="http://yoursite.com/2020/05/22/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%EF%BC%88%E4%B8%89%EF%BC%89%E2%80%94%E2%80%94-%E6%8A%BD%E8%B1%A1%E5%B7%A5%E5%8E%82%E6%A8%A1%E5%BC%8F/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>设计模式（三）—— 抽象工厂模式 | sheny's blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">sheny's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-schedule">
+
+    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>日程表</a>
+
+  </li>
+        <li class="menu-item menu-item-catalogue">
+
+    <a href="/catalogues/" rel="section"><i class="fa fa-th-list fa-fw"></i>目录</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/05/22/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%EF%BC%88%E4%B8%89%EF%BC%89%E2%80%94%E2%80%94-%E6%8A%BD%E8%B1%A1%E5%B7%A5%E5%8E%82%E6%A8%A1%E5%BC%8F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="wshenY">
+      <meta itemprop="description" content="There are a lot of stories">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="sheny's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          设计模式（三）—— 抽象工厂模式
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-05-22 15:41:53" itemprop="dateCreated datePublished" datetime="2020-05-22T15:41:53+08:00">2020-05-22</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-05-24 16:34:10" itemprop="dateModified" datetime="2020-05-24T16:34:10+08:00">2020-05-24</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="目的"><a href="#目的" class="headerlink" title="目的"></a>目的</h2><p><strong>抽象工厂模式</strong>是一种创建型设计模式， 它能创建一系列相关的对象， 而无需指定其具体类。</p>
+<a id="more"></a>
+
+<h2 id="思考"><a href="#思考" class="headerlink" title="思考"></a>思考</h2><p>假设你正在开发一款家具商店模拟器。 你的代码中包括一些类， 用于表示：</p>
+<ol>
+<li>一系列相关产品， 例如 <code>椅子</code>Chair 、  <code>沙发</code>Sofa和 <code>咖啡桌</code>Coffee­Table 。</li>
+<li>系列产品的不同变体。 例如， 你可以使用 <code>现代</code>Modern 、  <code>维多利亚</code>Victorian 、  <code>装饰风艺术</code>Art­Deco等风格生成 <code>椅子</code> 、  <code>沙发</code>和 <code>咖啡桌</code> 。</li>
+</ol>
+<p><img src="https://refactoringguru.cn/images/patterns/diagrams/abstract-factory/problem-zh.png" alt="problem-zh"></p>
+<p>你需要设法单独生成每件家具对象， 这样才能确保其风格一致。 如果顾客收到的家具风格不一样， 他们可不会开心。</p>
+<p>此外， 你也不希望在添加新产品或新风格时修改已有代码。 家具供应商对于产品目录的更新非常频繁， 你不会想在每次更新时都去修改核心代码的。</p>
+<h2 id="方案"><a href="#方案" class="headerlink" title="方案"></a>方案</h2><p>首先， 抽象工厂模式建议为系列中的每件产品明确声明接口 （例如椅子、 沙发或咖啡桌）。 然后， 确保所有产品变体都继承这些接口。 例如， 所有风格的椅子都实现 <code>椅子</code>接口； 所有风格的咖啡桌都实现 <code>咖啡桌</code>接口， 以此类推。</p>
+<p><img src="https://refactoringguru.cn/images/patterns/diagrams/abstract-factory/solution1.png" alt="solution1"></p>
+<p>接下来， 我们需要声明<em>抽象工厂</em>——包含系列中所有产品构造方法的接口。 例如 <code>create­Chair</code>创建椅子 、  <code>create­Sofa</code>创建沙发和 <code>create­Coffee­Table</code>创建咖啡桌 。 这些方法必须返回<strong>抽象</strong>产品类型， 即我们之前抽取的那些接口：  <code>椅子</code> ，  <code>沙发</code>和 <code>咖啡桌</code>等等。</p>
+<p><img src="https://refactoringguru.cn/images/patterns/diagrams/abstract-factory/solution2.png" alt="solution2"></p>
+<p>那么该如何处理产品变体呢？ 对于系列产品的每个变体， 我们都将基于 <code>抽象工厂</code>接口创建不同的工厂类。 每个工厂类都只能返回特定类别的产品， 例如，  <code>现代家具工厂</code>Modern­Furniture­Factory只能创建 <code>现代椅子</code>Modern­Chair 、  <code>现代沙发</code>Modern­Sofa和 <code>现代咖啡桌</code>Modern­Coffee­Table对象。</p>
+<p>客户端代码可以通过相应的抽象接口调用工厂和产品类。 你无需修改实际客户端代码， 就能更改传递给客户端的工厂类， 也能更改客户端代码接收的产品变体。</p>
+<p>假设客户端想要工厂创建一把椅子。 客户端无需了解工厂类， 也不用管工厂类创建出的椅子类型。 无论是现代风格， 还是维多利亚风格的椅子， 对于客户端来说没有分别， 它只需调用抽象 <code>椅子</code>接口就可以了。 这样一来， 客户端只需知道椅子以某种方式实现了 <code>sit­On</code>坐下方法就足够了。 此外， 无论工厂返回的是何种椅子变体， 它都会和由同一工厂对象创建的沙发或咖啡桌风格一致。</p>
+<p>最后一点说明： 如果客户端仅接触抽象接口， 那么谁来创建实际的工厂对象呢？ 一般情况下， 应用程序会在初始化阶段创建具体工厂对象。 而在此之前， 应用程序必须根据配置文件或环境设定选择工厂类别。</p>
+<h2 id="结构"><a href="#结构" class="headerlink" title="结构"></a>结构</h2><ul>
+<li><strong>抽象产品</strong> （Abstract Product） 为构成系列产品的一组不同但相关的产品声明接口。</li>
+<li><strong>具体产品</strong> （Concrete Product） 是抽象产品的多种不同类型实现。 所有变体 （维多利亚/现代） 都必须实现相应的抽象产品 （椅子/沙发）。</li>
+<li><strong>抽象工厂</strong> （Abstract Factory） 接口声明了一组创建各种抽象产品的方法。</li>
+<li><strong>具体工厂</strong> （Concrete Factory） 实现抽象工厂的构建方法。 每个具体工厂都对应特定产品变体， 且仅创建此种产品变体。</li>
+<li>尽管具体工厂会对具体产品进行初始化， 其构建方法签名必须返回相应的<em>抽象</em>产品。 这样， 使用工厂类的客户端代码就不会与工厂创建的特定产品变体耦合。 <strong>客户端</strong> （Client） 只需通过抽象接口调用工厂和产品对象， 就能与任何具体工厂/产品变体交互。</li>
+</ul>
+<h2 id="举例（伪代码）"><a href="#举例（伪代码）" class="headerlink" title="举例（伪代码）"></a>举例（伪代码）</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 抽象工厂接口声明了一组能返回不同抽象产品的方法。这些产品属于同一个系列</span></span><br><span class="line"><span class="comment">// 且在高层主题或概念上具有相关性。同系列的产品通常能相互搭配使用。系列产</span></span><br><span class="line"><span class="comment">// 品可有多个变体，但不同变体的产品不能搭配使用。</span></span><br><span class="line"><span class="class"><span class="keyword">interface</span> <span class="title">GUIFactory</span> <span class="title">is</span></span></span><br><span class="line">    method createButton():Button</span><br><span class="line">    <span class="function">method <span class="title">createCheckbox</span><span class="params">()</span>:Checkbox</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="comment">// 具体工厂可生成属于同一变体的系列产品。工厂会确保其创建的产品能相互搭配</span></span></span><br><span class="line"><span class="function"><span class="comment">// 使用。具体工厂方法签名会返回一个抽象产品，但在方法内部则会对具体产品进</span></span></span><br><span class="line"><span class="function"><span class="comment">// 行实例化。</span></span></span><br><span class="line"><span class="function">class WinFactory implements GUIFactory is</span></span><br><span class="line"><span class="function">    method <span class="title">createButton</span><span class="params">()</span>:Button is</span></span><br><span class="line"><span class="function">        return new <span class="title">WinButton</span><span class="params">()</span></span></span><br><span class="line"><span class="function">    method <span class="title">createCheckbox</span><span class="params">()</span>:Checkbox is</span></span><br><span class="line"><span class="function">        return new <span class="title">WinCheckbox</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="comment">// 每个具体工厂中都会包含一个相应的产品变体。</span></span></span><br><span class="line"><span class="function">class MacFactory implements GUIFactory is</span></span><br><span class="line"><span class="function">    method <span class="title">createButton</span><span class="params">()</span>:Button is</span></span><br><span class="line"><span class="function">        return new <span class="title">MacButton</span><span class="params">()</span></span></span><br><span class="line"><span class="function">    method <span class="title">createCheckbox</span><span class="params">()</span>:Checkbox is</span></span><br><span class="line"><span class="function">        return new <span class="title">MacCheckbox</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="comment">// 系列产品中的特定产品必须有一个基础接口。所有产品变体都必须实现这个接口。</span></span></span><br><span class="line"><span class="function">interface Button is</span></span><br><span class="line"><span class="function">    method <span class="title">paint</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="comment">// 具体产品由相应的具体工厂创建。</span></span></span><br><span class="line"><span class="function">class WinButton implements Button is</span></span><br><span class="line"><span class="function">    method <span class="title">paint</span><span class="params">()</span> is</span></span><br><span class="line"><span class="function">        <span class="comment">// 根据 Windows 样式渲染按钮。</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">class MacButton implements Button is</span></span><br><span class="line"><span class="function">    method <span class="title">paint</span><span class="params">()</span> is</span></span><br><span class="line"><span class="function">        <span class="comment">// 根据 macOS 样式渲染按钮</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="comment">// 这是另一个产品的基础接口。所有产品都可以互动，但是只有相同具体变体的产</span></span></span><br><span class="line"><span class="function"><span class="comment">// 品之间才能够正确地进行交互。</span></span></span><br><span class="line"><span class="function">interface Checkbox is</span></span><br><span class="line"><span class="function">    method <span class="title">paint</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">class WinCheckbox implements Checkbox is</span></span><br><span class="line"><span class="function">    method <span class="title">paint</span><span class="params">()</span> is</span></span><br><span class="line"><span class="function">        <span class="comment">// 根据 macOS 样式渲染复选框。</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">class MacCheckbox implements Checkbox is</span></span><br><span class="line"><span class="function">    method <span class="title">paint</span><span class="params">()</span> is</span></span><br><span class="line"><span class="function">        <span class="comment">// 根据 macOS 样式渲染复选框。</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="comment">// 客户端代码仅通过抽象类型（GUIFactory、Button 和 Checkbox）使用工厂</span></span></span><br><span class="line"><span class="function"><span class="comment">// 和产品。这让你无需修改任何工厂或产品子类就能将其传递给客户端代码。</span></span></span><br><span class="line"><span class="function">class Application is</span></span><br><span class="line"><span class="function">    <span class="keyword">private</span> field factory: GUIFactory</span></span><br><span class="line"><span class="function">    <span class="keyword">private</span> field button: Button</span></span><br><span class="line"><span class="function">    constructor <span class="title">Application</span><span class="params">(factory: GUIFactory)</span> is</span></span><br><span class="line"><span class="function">        <span class="keyword">this</span>.factory </span>= factory</span><br><span class="line">    <span class="function">method <span class="title">createUI</span><span class="params">()</span> is</span></span><br><span class="line"><span class="function">        <span class="keyword">this</span>.button </span>= factory.createButton()</span><br><span class="line">    <span class="function">method <span class="title">paint</span><span class="params">()</span> is</span></span><br><span class="line"><span class="function">        button.<span class="title">paint</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="comment">// 程序会根据当前配置或环境设定选择工厂类型，并在运行时创建工厂（通常在初</span></span></span><br><span class="line"><span class="function"><span class="comment">// 始化阶段）。</span></span></span><br><span class="line"><span class="function">class ApplicationConfigurator is</span></span><br><span class="line"><span class="function">    method <span class="title">main</span><span class="params">()</span> is</span></span><br><span class="line"><span class="function">        config </span>= readApplicationConfigFile()</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (config.OS == <span class="string">&quot;Windows&quot;</span>) then</span><br><span class="line">            factory = <span class="keyword">new</span> WinFactory()</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (config.OS == <span class="string">&quot;Mac&quot;</span>) then</span><br><span class="line">            factory = <span class="keyword">new</span> MacFactory()</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> Exception(<span class="string">&quot;错误！未知的操作系统。&quot;</span>)</span><br><span class="line"></span><br><span class="line">        Application app = <span class="keyword">new</span> Application(factory)</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="抽象工厂模式适合应用场景"><a href="#抽象工厂模式适合应用场景" class="headerlink" title="抽象工厂模式适合应用场景"></a>抽象工厂模式适合应用场景</h2><ul>
+<li><p>如果代码需要与多个不同系列的相关产品交互， 但是由于无法提前获取相关信息， 或者出于对未来扩展性的考虑， 你不希望代码基于产品的具体类进行构建， 在这种情况下， 你可以使用抽象工厂。</p>
+</li>
+<li><p>抽象工厂为你提供了一个接口， 可用于创建每个系列产品的对象。 只要代码通过该接口创建对象， 那么你就不会生成与应用程序已生成的产品类型不一致的产品。</p>
+</li>
+<li><p>如果你有一个基于一组抽象方法的类， 且其主要功能因此变得不明确， 那么在这种情况下可以考虑使用抽象工厂模式。</p>
+</li>
+<li><p>在设计良好的程序中， 每个类仅负责一件事。 如果一个类与多种类型产品交互， 就可以考虑将工厂方法抽取到独立的工厂类或具备完整功能的抽象工厂类中。</p>
+</li>
+</ul>
+<h2 id="实现方式"><a href="#实现方式" class="headerlink" title="实现方式"></a>实现方式</h2><ol>
+<li>以不同的产品类型与产品变体为维度绘制矩阵。</li>
+<li>为所有产品声明抽象产品接口。 然后让所有具体产品类实现这些接口。</li>
+<li>声明抽象工厂接口， 并且在接口中为所有抽象产品提供一组构建方法。</li>
+<li>为每种产品变体实现一个具体工厂类。</li>
+<li>在应用程序中开发初始化代码。 该代码根据应用程序配置或当前环境， 对特定具体工厂类进行初始化。 然后将该工厂对象传递给所有需要创建产品的类。</li>
+<li>找出代码中所有对产品构造函数的直接调用， 将其替换为对工厂对象中相应构建方法的调用。</li>
+</ol>
+<h2 id="抽象工厂模式优缺点"><a href="#抽象工厂模式优缺点" class="headerlink" title="抽象工厂模式优缺点"></a>抽象工厂模式优缺点</h2><ul>
+<li><p>✅</p>
+<ul>
+<li>你可以确保同一工厂生成的产品相互匹配。</li>
+<li>你可以避免客户端和具体产品代码的耦合。</li>
+<li>单一职责原则。 你可以将产品生成代码抽取到同一位置， 使得代码易于维护。</li>
+<li>开闭原则。 向应用程序中引入新产品变体时， 你无需修改客户端代码。</li>
+</ul>
+</li>
+<li><p>❌</p>
+<ul>
+<li>由于采用该模式需要向应用中引入众多接口和类， 代码可能会比之前更加复杂。</li>
+</ul>
+</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" rel="tag"># 设计模式</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/05/22/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%EF%BC%88%E4%BA%8C%EF%BC%89%E2%80%94%E2%80%94-%E5%B7%A5%E5%8E%82%E6%A8%A1%E5%BC%8F/" rel="prev" title="设计模式（二）—— 工厂模式">
+      <i class="fa fa-chevron-left"></i> 设计模式（二）—— 工厂模式
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/05/24/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94-%E7%94%9F%E6%88%90%E5%99%A8%E6%A8%A1%E5%BC%8F/" rel="next" title="设计模式（四）—— 生成器模式">
+      设计模式（四）—— 生成器模式 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%AE%E7%9A%84"><span class="nav-number">1.</span> <span class="nav-text">目的</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%9D%E8%80%83"><span class="nav-number">2.</span> <span class="nav-text">思考</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%B9%E6%A1%88"><span class="nav-number">3.</span> <span class="nav-text">方案</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%93%E6%9E%84"><span class="nav-number">4.</span> <span class="nav-text">结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BE%E4%BE%8B%EF%BC%88%E4%BC%AA%E4%BB%A3%E7%A0%81%EF%BC%89"><span class="nav-number">5.</span> <span class="nav-text">举例（伪代码）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8A%BD%E8%B1%A1%E5%B7%A5%E5%8E%82%E6%A8%A1%E5%BC%8F%E9%80%82%E5%90%88%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="nav-number">6.</span> <span class="nav-text">抽象工厂模式适合应用场景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E6%96%B9%E5%BC%8F"><span class="nav-number">7.</span> <span class="nav-text">实现方式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8A%BD%E8%B1%A1%E5%B7%A5%E5%8E%82%E6%A8%A1%E5%BC%8F%E4%BC%98%E7%BC%BA%E7%82%B9"><span class="nav-number">8.</span> <span class="nav-text">抽象工厂模式优缺点</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">wshenY</p>
+  <div class="site-description" itemprop="description">There are a lot of stories</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">26</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/malbeshaba" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;malbeshaba" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://weibo.com/u/6140508803" title="Weibo → https:&#x2F;&#x2F;weibo.com&#x2F;u&#x2F;6140508803" rel="noopener" target="_blank"><i class="fab fa-weibo fa-fw"></i>Weibo</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">wshenY</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

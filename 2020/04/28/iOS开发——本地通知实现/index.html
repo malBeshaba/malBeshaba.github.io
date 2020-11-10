@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="什么是本地通知？本地通知是简短的，基于文本的消息，显示在iPhone屏幕顶部。 也许最常见的通知类型是聊天或文本消息，例如来自iMessage的消息。通知还会显示在iOS的“ 通知中心”中，您可以在其中查看和回复最新的通知。 在iOS上，您可以发送和接收两种类型的通知：  推送通知：推送通知是通过Internet发送的，例如聊天消息。它们通过基于Web的Apple Push Notificatio">
+<meta property="og:type" content="article">
+<meta property="og:title" content="iOS开发——本地通知实现">
+<meta property="og:url" content="http://yoursite.com/2020/04/28/iOS%E5%BC%80%E5%8F%91%E2%80%94%E2%80%94%E6%9C%AC%E5%9C%B0%E9%80%9A%E7%9F%A5%E5%AE%9E%E7%8E%B0/index.html">
+<meta property="og:site_name" content="sheny&#39;s blog">
+<meta property="og:description" content="什么是本地通知？本地通知是简短的，基于文本的消息，显示在iPhone屏幕顶部。 也许最常见的通知类型是聊天或文本消息，例如来自iMessage的消息。通知还会显示在iOS的“ 通知中心”中，您可以在其中查看和回复最新的通知。 在iOS上，您可以发送和接收两种类型的通知：  推送通知：推送通知是通过Internet发送的，例如聊天消息。它们通过基于Web的Apple Push Notificatio">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-04-28T08:10:30.000Z">
+<meta property="article:modified_time" content="2020-05-03T09:47:22.000Z">
+<meta property="article:author" content="wshenY">
+<meta property="article:tag" content="iOS">
+<meta property="article:tag" content="Notiication">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2020/04/28/iOS%E5%BC%80%E5%8F%91%E2%80%94%E2%80%94%E6%9C%AC%E5%9C%B0%E9%80%9A%E7%9F%A5%E5%AE%9E%E7%8E%B0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>iOS开发——本地通知实现 | sheny's blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">sheny's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-schedule">
+
+    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>日程表</a>
+
+  </li>
+        <li class="menu-item menu-item-catalogue">
+
+    <a href="/catalogues/" rel="section"><i class="fa fa-th-list fa-fw"></i>目录</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/28/iOS%E5%BC%80%E5%8F%91%E2%80%94%E2%80%94%E6%9C%AC%E5%9C%B0%E9%80%9A%E7%9F%A5%E5%AE%9E%E7%8E%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="wshenY">
+      <meta itemprop="description" content="There are a lot of stories">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="sheny's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          iOS开发——本地通知实现
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-04-28 16:10:30" itemprop="dateCreated datePublished" datetime="2020-04-28T16:10:30+08:00">2020-04-28</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-05-03 17:47:22" itemprop="dateModified" datetime="2020-05-03T17:47:22+08:00">2020-05-03</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="什么是本地通知？"><a href="#什么是本地通知？" class="headerlink" title="什么是本地通知？"></a>什么是本地通知？</h2><p>本地通知是简短的，基于文本的消息，显示在iPhone屏幕顶部。</p>
+<p>也许最常见的通知类型是聊天或文本消息，例如来自iMessage的消息。通知还会显示在iOS的“ <em>通知中心”中</em>，您可以在其中查看和回复最新的通知。</p>
+<p>在iOS上，您可以发送和接收两种类型的通知：</p>
+<ul>
+<li><p><strong>推送通知：</strong>推送通知是通过Internet发送的，例如聊天消息。它们通过基于Web的Apple Push Notification Service（APNS）中继到您的iPhone。</p>
+</li>
+<li><p><strong>本地通知：</strong>本地通知是安排好的，并在您的iPhone上本地“发送”，因此不会通过Internet发送。典型的用例是日历提醒或iPhone闹钟。</p>
+</li>
+</ul>
+<blockquote>
+<p>在本篇文章中我们尝试实现一个本地通知管理器</p>
+</blockquote>
+<a id="more"></a>
+
+<h2 id="本地通知管理器"><a href="#本地通知管理器" class="headerlink" title="本地通知管理器"></a>本地通知管理器</h2><p>通过构建一个独立的组件，使其在ViewController里的使用更加优雅。该<code>LocalNotificationManager</code>类将帮助我们管理本地通知。</p>
+<p>这是<code>LocalNotificationManager</code>该类的起始定义：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">import UserNotifications</span><br><span class="line"></span><br><span class="line">class LocalNotificationManager</span><br><span class="line">&#123;</span><br><span class="line">    var notifications &#x3D; [Notification]()</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>容易吧？该类具有一个实例属性，称为<code>notifications</code>，类型或通知数组。使用上面的语法，该属性用一个空数组初始化。<code>[Notification]``notifications</code></p>
+<p>接下来，我们将定义该<code>Notification</code>类型：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">struct Notification &#123;</span><br><span class="line">    var id:String</span><br><span class="line">    var title:String</span><br><span class="line">    var datetime:DateComponents</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>您很快就会看到，该<code>Notification</code> 结构将帮助我们更好地组织通知。我们没有将不同的值传递给<code>UNUserNotificationCenter</code>（用于计划本地通知的iOS SDK组件），而是将信息包装在我们自己制作的方便类型中。</p>
+<p>安排本地通知的工作流程如下：</p>
+<ol>
+<li>检查用户是否已授予计划/处理本地通知的权限</li>
+<li>如果之前未请求任何权限，请询问用户</li>
+<li>如果已获得许可，请安排本地通知</li>
+<li>如果之前已请求许可，但用户拒绝，则不执行任何操作</li>
+</ol>
+<p>为了适应上述功能，我们将在<code>LocalNotificationManager</code>类中定义一些功能：</p>
+<ul>
+<li><code>listScheduledNotifications()</code>，因此我们可以调试已安排的通知</li>
+<li><code>schedule()</code>，将启动通知权限和计划的公共功能</li>
+<li><code>requestAuthorization()</code>，这是私人功能，将提示应用程序用户授予发送本地通知的权限</li>
+<li><code>scheduleNotifications()</code>，该私有函数将遍历<code>notifications</code>属性以安排本地通知</li>
+</ul>
+<blockquote>
+<p>这种3层权限检查在iOS开发中很常见。许多组件使用常量来指示是否以及如何授权使用。良好地处理权限（包括失败/被拒绝）是重要的最佳实践。</p>
+</blockquote>
+<p>您可以使用以下功能来检查已计划哪些本地通知：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">func listScheduledNotifications()</span><br><span class="line">&#123;</span><br><span class="line">    UNUserNotificationCenter.current().getPendingNotificationRequests &#123; notifications in</span><br><span class="line"></span><br><span class="line">        for notification in notifications &#123;</span><br><span class="line">            print(notification)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面的代码<code>getPendingNotificationRequests(completionHandler:)</code>在共享<code>UNUserNotificationCenter</code>实例上调用该函数，该实例接收一个<a target="_blank" rel="noopener" href="https://developer.apple.com/documentation/usernotifications/unnotificationrequest">UNNotificationRequest</a>对象数组。非常适合调试！</p>
+<h2 id="要求发送本地通知的权限"><a href="#要求发送本地通知的权限" class="headerlink" title="要求发送本地通知的权限"></a>要求发送本地通知的权限</h2><p>在我们计划本地通知以将其本地发送给用户之前，我们需要征得许可。大多数具有安全或隐私风险的iOS组件（例如iPhone的相机或照片库）均受基于权限的系统保护。</p>
+<p>要求发送本地通知的权限涉及<code>requestAuthorization(options:completionHandler:)</code>共享<code>UNUserNotificationCenter</code>实例的功能。此单例实例用于管理iOS应用中与通知相关的所有内容。</p>
+<p>在<code>LocalNotificationManager</code>该类中编写以下函数的代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">private func requestAuthorization()</span><br><span class="line">&#123;</span><br><span class="line">    UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) &#123; granted, error in</span><br><span class="line"></span><br><span class="line">        if granted &#x3D;&#x3D; true &amp;&amp; error &#x3D;&#x3D; nil &#123;</span><br><span class="line">            self.scheduleNotifications()</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>函数中发生的事情如下：</p>
+<ul>
+<li>首先，我们<code>UNUserNotificationCenter</code>通过调用<code>current()</code>函数来访问共享实例。这样，我们就可以访问在iOS上管理通知的单个对象。（在其他API中，通常通过<code>shared</code>属性访问此对象。）</li>
+<li>然后，该函数<code>requestAuthorization(options:completionHandler:)</code>被调用。这将提示iOS上的权限对话框。该选项参数是常数组。当前，我们仅在显示警报，更改应用程序图标的数字徽标以及在通知警报弹出时播放声音的权限。</li>
+<li>然后，将完成处理程序作为函数的最后一个参数传递。它使用结尾闭包语法。授予许可后，将执行此关闭。它有两个参数，分别<code>granted</code>是type <code>Bool</code>和<code>error</code>type <code>Error</code>。基于这些参数，我们可以检查是否已实际授予许可。</li>
+<li>与条件，我们正在检查其<code>granted</code>平等<code>true</code>和<code>error</code>是<code>nil</code>。这样，我们可以确定没有错误，并且已经授予了权限。随后，该<code>scheduleNotifications()</code>函数被调用（见下文）。</li>
+</ul>
+<p>简而言之，此功能向iPhone用户请求发送本地通知的权限。如果允许，<code>scheduleNotifications()</code>则调用该函数。如果没有给予许可，或者发生错误，则什么也不会发生。</p>
+<p>这里有一些注意事项：</p>
+<ul>
+<li>该<code>requestAuthorization()</code>函数是私有的，因此只能在类<em>内部</em>使用<code>LocalNotificationManager</code>。</li>
+<li>在您自己的应用程序中，始终要考虑并处理失败的情况，即，如果用户<em>未</em>授予权限会发生什么？</li>
+<li>您是否对完成处理程序感到厌倦，还是经常使用嵌套的完成处理程序？退房<a target="_blank" rel="noopener" href="https://learnappmaking.com/promises-swift-how-to/">的承诺</a> -它会积极地打击你的心！</li>
+</ul>
+<h2 id="检查本地通知权限状态"><a href="#检查本地通知权限状态" class="headerlink" title="检查本地通知权限状态"></a>检查本地通知权限状态</h2><p>现在我们有了一个要求用户许可的功能，我们可以在授权状态下进行特殊的秘密舞蹈。</p>
+<p>该<code>schedule()</code>函数是<code>LocalNotificationManager</code>该类的面向公众的API的一部分。您可以使用它来启动本地通知权限以及随后的通知调度。</p>
+<p>在<code>LocalNotificationManager</code>该类中编写以下函数的代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">func schedule()</span><br><span class="line">&#123;</span><br><span class="line">    UNUserNotificationCenter.current().getNotificationSettings &#123; settings in</span><br><span class="line"></span><br><span class="line">        switch settings.authorizationStatus &#123;</span><br><span class="line">        case .notDetermined:</span><br><span class="line">            self.requestAuthorization()</span><br><span class="line">        case .authorized, .provisional:</span><br><span class="line">            self.scheduleNotifications()</span><br><span class="line">        default:</span><br><span class="line">            break &#x2F;&#x2F; Do nothing</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>该<code>schedule()</code>功能如何工作？</p>
+<ul>
+<li><p>首先，我们<code>UNUserNotificationCenter</code>再次访问该共享库，然后调用该<code>getNotificationSettings(completionHandler:)</code>函数。同样，为了简洁起见，我们使用结尾闭包语法。并且，和以前一样，在收到设置后将执行此完成处理程序。</p>
+</li>
+<li><p>然后，在switch块内部，我们正在检查</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">authorizationStatus</span><br></pre></td></tr></table></figure>
+
+<p>枚举类型</p>
+<p>UNAuthorizationStatus</p>
+<p>的属性。此值可以准确地告诉我们是否以及已授予什么权限。</p>
+<ol>
+<li><em>未确定</em>。如果未确定授权，则意味着我们之前没有请求过许可。因此，我们将通过调用该<code>requestAuthorization()</code>函数来请求许可！</li>
+<li><em>授权的或临时的</em>。如果值<code>authorizationStatus</code>是<code>.authorized</code>或<code>.provisional</code>，这意味着我们必须（临时）许可计划的通知。因此，我们将通过致电安排通知<code>scheduleNotifications()</code>（请参见下文）。</li>
+<li><em>还有什么</em>。如果没有其他切换条件匹配，即在的情况下<code>.denied</code>，我们什么都不做。我们无法再次请求许可，也无法安排本地通知。</li>
+</ol>
+</li>
+</ul>
+<p>在iOS上，您只能请求<em>一次</em>许可。如果明确拒绝了权限，则用户必须通过iPhone的“设置”应用手动将其重置。这就是为什么您总是想弄清楚应用程序为何要求许可的原因。许多应用程序还使用两步方法，即首先请求软许可，然后使用iOS提供的许可对话框。</p>
+<p>这里要理解的一件事很重要，就是我们可以在类中定义两条路径，两条路径都以结尾<code>scheduleNotifications()</code>。</p>
+<ol>
+<li>尚未授予许可，因此被提出，并<code>scheduleNotifications()</code>从中调用<code>requestAuthorization()</code></li>
+<li>之前已授予权限，因此<code>scheduleNotifications()</code>直接从<code>schedule()</code>函数中调用</li>
+</ol>
+<p>我们在<code>LocalNotificationManager</code>该类中编码的函数是<em>幂等的</em>。幂等是一种软件开发原则，该原则指出可以多次调用一个函数，而不会在初始调用后改变结果。</p>
+<p>换句话说，无论您调用该<code>schedule()</code>函数1次还是100次，它总是将同一组通知安排一次。相反的意思是您两次调用该函数，并且得到的通知（重复）通知次数是原来的两倍！</p>
+<p>一些例子：</p>
+<ul>
+<li>幂等函数是该函数。调用一次或多次都没有关系，该函数将始终舍入到最接近的整数。<code>round(_:)</code></li>
+<li>非幂等函数是<code>moveUp()</code>假设的棋盘游戏中的函数。每次调用该功能时，棋子都会在板上上升一个位置。调用此函数多少次很重要。</li>
+</ul>
+<p>重要的是我们的<code>schedule()</code>函数是幂等的，因为这样我们就可以调用它而不必担心意外的副作用。我们可以肯定地知道，该功能将始终计划本地通知（如果已授予权限），并且在权限待处理时，也会计划本地通知。</p>
+<p>将此与您必须调用两次的函数进行比较：一次获得许可，然后在获得许可时再次调用。或者，假设有一个函数在您每次调用它时安排<em>新的</em>通知。这肯定是导致错误的原因！</p>
+<p><strong>快速提示：</strong>知道<em>幂等之后</em>，随处可见。人行横道按钮。一个“开”按钮。电梯楼层按钮。iPhone的主屏幕按钮。好的Web表单<em>提交</em>按钮。该<em>“呼叫乘务员”</em>按钮。紧急刹车。按下多少次都没关系！（这样做的不确定性为零，没有副作用，即<em>非常安全</em>。）</p>
+<h2 id="安排本地通知"><a href="#安排本地通知" class="headerlink" title="安排本地通知"></a>安排本地通知</h2><p>现在，我们终于可以编写该<code>scheduleNotifications()</code>函数了。此函数遍历数组中的<code>Notification</code>对象，<code>notifications</code>并计划它们在将来交付。</p>
+<p>在该类中编写以下函数的代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">private func scheduleNotifications()</span><br><span class="line">&#123;</span><br><span class="line">    for notification in notifications</span><br><span class="line">    &#123;</span><br><span class="line">        let content      &#x3D; UNMutableNotificationContent()</span><br><span class="line">        content.title    &#x3D; notification.title</span><br><span class="line">        content.sound    &#x3D; .default</span><br><span class="line"></span><br><span class="line">        let trigger &#x3D; UNCalendarNotificationTrigger(dateMatching: notification.datetime, repeats: false)</span><br><span class="line"></span><br><span class="line">        let request &#x3D; UNNotificationRequest(identifier: notification.id, content: content, trigger: trigger)</span><br><span class="line"></span><br><span class="line">        UNUserNotificationCenter.current().add(request) &#123; error in</span><br><span class="line"></span><br><span class="line">            guard error &#x3D;&#x3D; nil else &#123; return &#125;</span><br><span class="line"></span><br><span class="line">            print(&quot;Notification scheduled! --- ID &#x3D; \(notification.id)&quot;)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在顶层，该函数<code>notifications</code>使用for循环遍历数组（一个实例属性）。在循环内部，对于数组中的每个项目，都会发生：</p>
+<ul>
+<li>首先，创建一个类型为的对象<code>UNMutableNotificationContent</code>。该对象包含通知的<em>内容</em>，例如标题，正文和声音。</li>
+<li>然后，创建一个类型为的对象<code>UNCalendarNotificationTrigger</code>。该对象包含通知的<em>触发器</em>，例如日期和时间。我们正在使用DateComponents类型<code>datetime</code>的<code>Notification</code>结构属性来指示<em>何时</em>发送通知。</li>
+<li>然后，我们创建一个类型为的对象<code>UNNotificationRequest</code>。该对象将内容和触发器与唯一ID结合在一起。每个通知都需要一个唯一的ID，您可以方便地使用它来重新安排本地通知。</li>
+<li>最后，将<code>request</code>对象传递给<code>add(request:completionHandler:)</code>共享<code>UNUserNotificationCenter</code>实例的功能。这将调度本地通知，然后执行完成处理程序。在此完成处理程序中，我们正在检查是否未发生错误，并向<em>控制台</em>打印一条消息。</li>
+</ul>
+<p>随便吧，对吧？首先构造内容，然后构造触发器，然后将它们组合为“请求”，然后将请求传递给<code>UNUserNotificationCenter</code>。</p>
+<p>您还可以根据时间间隔触发本地通知：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">let trigger &#x3D; UNTimeIntervalNotificationTrigger(timeInterval: 120, repeats: false)</span><br></pre></td></tr></table></figure>
+
+<p>您还<code>CLRegion</code>可以在进入或退出该区域时将GPS区域用作类型的触发器。像这样：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">let trigger &#x3D; UNLocationNotificationTrigger(triggerWithRegion: region, repeats: false)</span><br></pre></td></tr></table></figure>
+
+<p>该<code>DateComponents</code>结构对于创建具有特定日期，月份，年份，小时，分钟等参数的基于日期时间的对象很有用。的实例<code>DateComponents</code>将使用iPhone的日历语言环境，这几乎使您可以创建零失误的原始日期时间对象。</p>
+<p>既然<code>LocalNotificationManager</code>课程已经完成，我们可以安排一些通知，如下所示：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">let manager &#x3D; LocalNotificationManager()</span><br><span class="line">manager.notifications &#x3D; [</span><br><span class="line">    Notification(id: &quot;reminder-1&quot;, title: &quot;Remember the milk!&quot;, datetime: DateComponents(calendar: Calendar.current, year: 2019, month: 4, day: 22, hour: 17, minute: 0)),</span><br><span class="line">    Notification(id: &quot;reminder-2&quot;, title: &quot;Ask Bob from accounting&quot;, datetime: DateComponents(calendar: Calendar.current, year: 2019, month: 4, day: 22, hour: 17, minute: 1)),</span><br><span class="line">    Notification(id: &quot;reminder-3&quot;, title: &quot;Send postcard to mom&quot;, datetime: DateComponents(calendar: Calendar.current, year: 2019, month: 4, day: 22, hour: 17, minute: 2))</span><br><span class="line">]</span><br><span class="line"></span><br><span class="line">manager.schedule()</span><br></pre></td></tr></table></figure>
+
+<p>一次或多次运行此代码都没有关系，它将始终计划相同的三个本地通知。它将一次请求许可，并在以后的调用中考虑授权状态。</p>
+<p>该结构的<code>id</code>属性<code>Notification</code>用于标识唯一通知。如果您使用相同的<code>id</code>，或为的<code>identifier</code>参数提供相同的标识符<code>UNNotificationRequest</code>，则将重新安排关联的通知。如果您为本地通知使用了良好的命名结构，则不必担心意外地计划了许多重复的通知。</p>
+<p><code>Notification</code>上面的代码中的struct使用了合成的初始化函数。此函数包括该结构的所有属性作为参数。如果您自己不提供初始化程序，它将自动添加到结构和类中。</p>
+<p>在这里值得指出的是<code>LocalNotificationManager</code> <em>必须</em>使用属性<code>notifications</code>，该属性<code>Notification</code>在调用之前需要用对象填充<code>schedule()</code>。这是为什么？</p>
+<p>由于的异步特性<code>UNUserNotificationCenter</code>及其对完成处理程序的依赖，我们正在从内部的闭包内部调度通知<code>schedule()</code>。如果该<code>schedule()</code>函数接受了一个<code>notifications</code>参数，我们将需要一些意大利面条式代码将该数组传递给<code>requestAuthorization()</code>and <code>scheduleNotifications()</code>。不幸的是，这意味着<code>schedule()</code>依赖于<code>notifications</code>属性的状态才能正常运行。</p>
+<p>一个很好的选择是使用诺言。双方<code>requestAuthorization()</code>并<code>scheduleNotifications()</code>然后函数可以返回一个承诺，我们可以使用一个承诺块<code>schedule()</code>解析基于所述许可状况链条。</p>
+<p>##完整代码</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> UserNotifications</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Notification</span> </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> id: <span class="type">String</span></span><br><span class="line">    <span class="keyword">var</span> title: <span class="type">String</span></span><br><span class="line">    <span class="keyword">var</span> datetime: <span class="type">DateComponents</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">LocalNotificationManager</span> </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> notifications = [<span class="type">Notification</span>]()</span><br><span class="line">    </span><br><span class="line">    <span class="comment">/// 检查已计划的本地通知</span></span><br><span class="line">    <span class="function"><span class="keyword">func</span> <span class="title">listScheduledNotification</span><span class="params">()</span></span> &#123;</span><br><span class="line">        <span class="type">UNUserNotificationCenter</span>.current().getPendingNotificationRequests &#123; notifications <span class="keyword">in</span></span><br><span class="line">            <span class="keyword">for</span> notification <span class="keyword">in</span> notifications &#123;</span><br><span class="line">                <span class="built_in">print</span>(notification)</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">/// 请求发送通知的权限</span></span><br><span class="line">    <span class="keyword">private</span> <span class="function"><span class="keyword">func</span> <span class="title">requestAuthorization</span><span class="params">()</span></span> &#123;</span><br><span class="line">        <span class="type">UNUserNotificationCenter</span>.current().requestAuthorization(options: [.alert, .badge, .sound]) &#123; (granted, error) <span class="keyword">in</span></span><br><span class="line">            <span class="keyword">if</span> granted == <span class="literal">true</span> &amp;&amp; error == <span class="literal">nil</span> &#123;</span><br><span class="line">                </span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">func</span> <span class="title">schedule</span><span class="params">()</span></span> &#123;</span><br><span class="line">        <span class="type">UNUserNotificationCenter</span>.current().getNotificationSettings &#123; (setting) <span class="keyword">in</span></span><br><span class="line">            <span class="keyword">switch</span> setting.authorizationStatus &#123;</span><br><span class="line">            <span class="keyword">case</span> .notDetermined:</span><br><span class="line">                <span class="keyword">self</span>.requestAuthorization()</span><br><span class="line">            <span class="keyword">case</span> .authorized, .provisional:</span><br><span class="line">                <span class="keyword">self</span>.scheduleNotifications()</span><br><span class="line">            <span class="keyword">default</span>:</span><br><span class="line">                <span class="keyword">break</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">private</span> <span class="function"><span class="keyword">func</span> <span class="title">scheduleNotifications</span><span class="params">()</span></span> &#123;</span><br><span class="line">        <span class="keyword">for</span> notification <span class="keyword">in</span> notifications &#123;</span><br><span class="line">            <span class="keyword">let</span> content = <span class="type">UNMutableNotificationContent</span>()</span><br><span class="line">            content.title = notification.title</span><br><span class="line">            content.sound = .<span class="keyword">default</span></span><br><span class="line">            </span><br><span class="line">            <span class="keyword">let</span> trigger = <span class="type">UNCalendarNotificationTrigger</span>(dateMatching: notification.datetime, repeats: <span class="literal">false</span>)</span><br><span class="line">            <span class="keyword">let</span> request = <span class="type">UNNotificationRequest</span>(identifier: notification.id, content: content, trigger: trigger)</span><br><span class="line">            </span><br><span class="line">            <span class="type">UNUserNotificationCenter</span>.current().add(request) &#123; (error) <span class="keyword">in</span></span><br><span class="line">                <span class="keyword">guard</span> error == <span class="literal">nil</span> <span class="keyword">else</span> &#123;<span class="keyword">return</span>&#125;</span><br><span class="line">                </span><br><span class="line">                <span class="built_in">print</span>(<span class="string">&quot;Notification scheduled! --- ID = \(notification.id)&quot;</span>)</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/iOS/" rel="tag"># iOS</a>
+              <a href="/tags/Notiication/" rel="tag"># Notiication</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/04/28/iOS%E5%BC%80%E5%8F%91%E2%80%94%E2%80%94UITableView%EF%BC%88%E4%B8%80%EF%BC%89/" rel="prev" title="iOS开发——UITableView（一）">
+      <i class="fa fa-chevron-left"></i> iOS开发——UITableView（一）
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/05/13/web%E5%BC%80%E5%8F%91%E2%80%94%E2%80%94%E5%AE%9E%E6%88%98%EF%BC%88%E4%B8%80%EF%BC%89/" rel="next" title="web开发——实战（一）">
+      web开发——实战（一） <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E6%9C%AC%E5%9C%B0%E9%80%9A%E7%9F%A5%EF%BC%9F"><span class="nav-number">1.</span> <span class="nav-text">什么是本地通知？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%AC%E5%9C%B0%E9%80%9A%E7%9F%A5%E7%AE%A1%E7%90%86%E5%99%A8"><span class="nav-number">2.</span> <span class="nav-text">本地通知管理器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A6%81%E6%B1%82%E5%8F%91%E9%80%81%E6%9C%AC%E5%9C%B0%E9%80%9A%E7%9F%A5%E7%9A%84%E6%9D%83%E9%99%90"><span class="nav-number">3.</span> <span class="nav-text">要求发送本地通知的权限</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A3%80%E6%9F%A5%E6%9C%AC%E5%9C%B0%E9%80%9A%E7%9F%A5%E6%9D%83%E9%99%90%E7%8A%B6%E6%80%81"><span class="nav-number">4.</span> <span class="nav-text">检查本地通知权限状态</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%89%E6%8E%92%E6%9C%AC%E5%9C%B0%E9%80%9A%E7%9F%A5"><span class="nav-number">5.</span> <span class="nav-text">安排本地通知</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">wshenY</p>
+  <div class="site-description" itemprop="description">There are a lot of stories</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">26</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/malbeshaba" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;malbeshaba" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://weibo.com/u/6140508803" title="Weibo → https:&#x2F;&#x2F;weibo.com&#x2F;u&#x2F;6140508803" rel="noopener" target="_blank"><i class="fab fa-weibo fa-fw"></i>Weibo</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">wshenY</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

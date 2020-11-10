@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="什么是Word2Vec模型？Word2Vec是从大量文本语料中以无监督的方式学习语义知识的一种模型，它被大量地用在自然语言处理（NLP）中。那么它是如何帮助我们做自然语言处理呢？Word2Vec其实就是通过学习文本来用词向量的方式表征词的语义信息，即通过一个嵌入空间使得语义上相似的单词在该空间内距离很近。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Word2Vec的skip-gram模型分析">
+<meta property="og:url" content="http://yoursite.com/2020/07/29/Word2Vec%E7%9A%84skip-gram%E6%A8%A1%E5%9E%8B%E5%88%86%E6%9E%90/index.html">
+<meta property="og:site_name" content="sheny&#39;s blog">
+<meta property="og:description" content="什么是Word2Vec模型？Word2Vec是从大量文本语料中以无监督的方式学习语义知识的一种模型，它被大量地用在自然语言处理（NLP）中。那么它是如何帮助我们做自然语言处理呢？Word2Vec其实就是通过学习文本来用词向量的方式表征词的语义信息，即通过一个嵌入空间使得语义上相似的单词在该空间内距离很近。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://pic2.zhimg.com/80/v2-35339b4e3efc29326bad70728e2f469c_720w.png">
+<meta property="og:image" content="https://www.zhihu.com/equation?tex=skip%5C_window=2">
+<meta property="og:image" content="https://www.zhihu.com/equation?tex=skip%5C_window=2">
+<meta property="og:image" content="https://www.zhihu.com/equation?tex=span=2%5Ctimes+2=4">
+<meta property="og:image" content="https://www.zhihu.com/equation?tex=skip%5C_window=2">
+<meta property="og:image" content="https://www.zhihu.com/equation?tex=num%5C_skips=2">
+<meta property="og:image" content="https://pic3.zhimg.com/80/v2-ca21f9b1923e201c4349030a86f6dc1f_720w.png">
+<meta property="og:image" content="https://ae03.alicdn.com/kf/Hba6d57e88c334277b4c43ded69af0dd51.png">
+<meta property="og:image" content="https://pic3.zhimg.com/80/v2-c538566f7d627ce7ca40589f15ca8284_720w.png">
+<meta property="og:image" content="https://pic4.zhimg.com/80/v2-9de68e5c46e9ea1ea480e295b0cc0b87_720w.png">
+<meta property="og:image" content="https://www.zhihu.com/equation?tex=0%5Ctimes+17+++0%5Ctimes+23+++0%5Ctimes+4+++1%5Ctimes+10+++0%5Ctimes+11+=+10">
+<meta property="og:image" content="https://ae04.alicdn.com/kf/H195a5365b8ec49509ca48cf5a6dd29bbG.png">
+<meta property="og:image" content="https://ae01.alicdn.com/kf/H6a3f15ba62a0401d91b805db0b3a90c4s.png">
+<meta property="article:published_time" content="2020-07-29T11:34:55.000Z">
+<meta property="article:modified_time" content="2020-07-29T12:08:25.000Z">
+<meta property="article:author" content="wshenY">
+<meta property="article:tag" content="神经网络">
+<meta property="article:tag" content="机器学习">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pic2.zhimg.com/80/v2-35339b4e3efc29326bad70728e2f469c_720w.png">
+
+<link rel="canonical" href="http://yoursite.com/2020/07/29/Word2Vec%E7%9A%84skip-gram%E6%A8%A1%E5%9E%8B%E5%88%86%E6%9E%90/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Word2Vec的skip-gram模型分析 | sheny's blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">sheny's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-schedule">
+
+    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>日程表</a>
+
+  </li>
+        <li class="menu-item menu-item-catalogue">
+
+    <a href="/catalogues/" rel="section"><i class="fa fa-th-list fa-fw"></i>目录</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/07/29/Word2Vec%E7%9A%84skip-gram%E6%A8%A1%E5%9E%8B%E5%88%86%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="wshenY">
+      <meta itemprop="description" content="There are a lot of stories">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="sheny's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Word2Vec的skip-gram模型分析
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2020-07-29 19:34:55 / 修改时间：20:08:25" itemprop="dateCreated datePublished" datetime="2020-07-29T19:34:55+08:00">2020-07-29</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="什么是Word2Vec模型？"><a href="#什么是Word2Vec模型？" class="headerlink" title="什么是Word2Vec模型？"></a>什么是Word2Vec模型？</h2><p><code>Word2Vec</code>是从大量文本语料中以无监督的方式学习语义知识的一种模型，它被大量地用在自然语言处理（NLP）中。那么它是如何帮助我们做自然语言处理呢？<code>Word2Vec</code>其实就是通过学习文本来用词向量的方式表征词的语义信息，即通过一个嵌入空间使得语义上相似的单词在该空间内距离很近。</p>
+<a id="more"></a>
+
+<h2 id="初步理解Word2Vec"><a href="#初步理解Word2Vec" class="headerlink" title="初步理解Word2Vec"></a>初步理解Word2Vec</h2><p>###Skip-Gram和CBOW模型</p>
+<p>Word2Vec模型中，主要有Skip-Gram和CBOW两种模型，从直观上理解，Skip-Gram是给定input word来预测上下文。而CBOW是给定上下文，来预测input word。</p>
+<p><img src="https://pic2.zhimg.com/80/v2-35339b4e3efc29326bad70728e2f469c_720w.png" alt="v2-35339b4e3efc29326bad70728e2f469c_720w"></p>
+<p>这个模型被称为<strong>Skip-gram模型</strong>（名称源于该模型在训练时会对上下文环境里的word进行采样）。</p>
+<p>如果将Skip-gram模型的前向计算过程写成数学形式，我们得到：</p>
+<p>𝑝(𝑤𝑜|𝑤𝑖)=𝑒𝑈𝑜⋅𝑉𝑖∑<sub>j</sub>𝑒𝑈𝑗⋅𝑉𝑖</p>
+<p>其中，𝑉𝑖是Embedding层矩阵里的列向量，也被称为𝑤𝑖的input vector。𝑈𝑗是softmax层矩阵里的行向量，也被称为𝑤𝑖的output vector。</p>
+<p>因此，Skip-gram模型的本质是<strong>计算输入word的input vector与目标word的output vector之间的余弦相似度，并进行softmax归一化</strong>。我们要学习的模型参数正是这两类词向量。</p>
+<blockquote>
+<p>下文中所有的Word2Vec都是指Skip-Gram模型</p>
+</blockquote>
+<p>Word2Vec模型实际上分为了两个部分，<strong>第一部分为建立模型，第二部分是通过模型获取嵌入词向量。</strong>Word2Vec的整个建模过程实际上与<code>自编码器（auto-encoder）</code>的思想很相似，即先基于训练数据构建一个神经网络，当这个模型训练好以后，我们并不会用这个训练好的模型处理新的任务，我们真正需要的是这个模型通过训练数据所学得的参数，例如隐层的权重矩阵——后面我们将会看到这些权重在Word2Vec中实际上就是我们试图去学习的“word vectors”。基于训练数据建模的过程，我们给它一个名字叫“Fake Task”，意味着建模并不是我们最终的目的。</p>
+<h3 id="The-Fake-Task"><a href="#The-Fake-Task" class="headerlink" title="The Fake Task"></a>The Fake Task</h3><p>我们在上面提到，训练模型的真正目的是获得模型基于训练数据学得的隐层权重。为了得到这些权重，我们首先要构建一个完整的神经网络作为我们的“Fake Task”，后面再返回来看通过“Fake Task”我们如何间接地得到这些词向量。</p>
+<p>接下来来看看如何训练我们的神经网络。假如我们有一个句子<strong>“The dog barked at the mailman”。</strong></p>
+<ul>
+<li>首先我们选句子中间的一个词作为我们的输入词，例如我们选取“dog”作为input word；</li>
+<li>有了input word以后，我们再定义一个叫做skip_window的参数，它代表着我们从当前input word的一侧（左边或右边）选取词的数量。如果我们设置<img src="https://www.zhihu.com/equation?tex=skip%5C_window=2" alt="[公式]">，那么我们最终获得窗口中的词（包括input word在内）就是**[‘The’, ‘dog’，’barked’, ‘at’]<strong>。<img src="https://www.zhihu.com/equation?tex=skip%5C_window=2" alt="[公式]">代表着选取左input word左侧2个词和右侧2个词进入我们的窗口，所以整个窗口大小<img src="https://www.zhihu.com/equation?tex=span=2%5Ctimes+2=4" alt="[公式]">。另一个参数叫num_skips，它代表着我们从整个窗口中选取多少个不同的词作为我们的output word，当<img src="https://www.zhihu.com/equation?tex=skip%5C_window=2" alt="[公式]">，<img src="https://www.zhihu.com/equation?tex=num%5C_skips=2" alt="[公式]">时，我们将会得到两组 **(input word, output word)</strong> 形式的训练数据，即 **(‘dog’, ‘barked’)，(‘dog’, ‘the’)**。</li>
+<li>神经网络基于这些训练数据将会输出一个概率分布，这个概率代表着我们的词典中的每个词是output word的可能性。这句话有点绕，我们来看个栗子。第二步中我们在设置skip_window和num_skips=2的情况下获得了两组训练数据。假如我们先拿一组数据 <strong>(‘dog’, ‘barked’)</strong> 来训练神经网络，那么模型通过学习这个训练样本，会告诉我们词汇表中每个单词是“barked”的概率大小。</li>
+</ul>
+<p><img src="https://pic3.zhimg.com/80/v2-ca21f9b1923e201c4349030a86f6dc1f_720w.png" alt="v2-ca21f9b1923e201c4349030a86f6dc1f_720w"></p>
+<h2 id="深入了解word2vec模型"><a href="#深入了解word2vec模型" class="headerlink" title="深入了解word2vec模型"></a>深入了解word2vec模型</h2><h3 id="Word2Vec是一个神经网络"><a href="#Word2Vec是一个神经网络" class="headerlink" title="Word2Vec是一个神经网络"></a>Word2Vec是一个神经网络</h3><p>word2vec是一个简单的神经网络，只由三个层组成：</p>
+<ul>
+<li>１个输入层</li>
+<li>1个隐藏层</li>
+<li>1个输出层</li>
+</ul>
+<p>输入层输入的就是·数据对·的数字表示，输出到隐藏层。 隐藏层的神经网络单元的数量，其实就是我们所说的<strong>embedding size</strong>。需要注意的是，我们的隐藏层后面不需要使用激活函数。 输出层，我们使用softmax操作，得到每一个预测结果的概率。</p>
+<p><img src="https://ae03.alicdn.com/kf/Hba6d57e88c334277b4c43ded69af0dd51.png" alt="image-20200727193735893.png"></p>
+<h3 id="输入层"><a href="#输入层" class="headerlink" title="输入层"></a>输入层</h3><p>现在问题来了，我们该如何用数字表示文本数据呢？</p>
+<p>好像随便一种方式都可以用来表示我们的文本啊。</p>
+<p>看上图，我们发现，它的输入使用的是<strong>one-hot</strong>编码。什么是ont-hot编码呢？如图所示，假设有n个词，则每一个词可以用一个n维的向量来表示，这个n维向量只有一个位置是1，其余位置都是0。</p>
+<p>那么为什么要用这样的编码来表示呢？答案后面揭晓。</p>
+<h3 id="隐藏层"><a href="#隐藏层" class="headerlink" title="隐藏层"></a>隐藏层</h3><p>隐藏层的神经单元数量，代表着每一个词用向量表示的维度大小。假设我们的<strong>hidden_size</strong>取300，也就是我们的隐藏层有300个神经元，那么对于每一个词，我们的向量表示就是一个1 * N的向量。 有多少个词，就有多少个这样的向量！</p>
+<p>所以对于<strong>输入层</strong>和<strong>隐藏层</strong>之间的权值矩阵W的矩阵，</p>
+<p>如果果我们现在想用300个特征来表示一个单词（即每个词可以被表示为300维的向量）。那么隐层的权重矩阵应该为10000行，300列（隐层有300个结点）。</p>
+<p>Google在最新发布的基于Google news数据集训练的模型中使用的就是300个特征的词向量。词向量的维度是一个可以调节的超参数（在Python的gensim包中封装的Word2Vec接口默认的词向量大小为100， window_size为5）。</p>
+<p>看下面的图片，左右两张图分别从不同角度代表了输入层-隐层的权重矩阵。左图中每一列代表一个10000维的词向量和隐层单个神经元连接的权重向量。从右边的图来看，每一行实际上代表了每个单词的词向量。</p>
+<p><img src="https://pic3.zhimg.com/80/v2-c538566f7d627ce7ca40589f15ca8284_720w.png" alt="img"></p>
+<p>所以我们最终的目标就是学习这个隐层的权重矩阵。</p>
+<p>我们现在回来接着通过模型的定义来训练我们的这个模型。</p>
+<p>上面我们提到，input word和output word都会被我们进行one-hot编码。仔细想一下，我们的输入被one-hot编码以后大多数维度上都是0（实际上仅有一个位置为1），所以这个向量相当稀疏，那么会造成什么结果呢。如果我们将一个1 x 10000的向量和10000 x 300的矩阵相乘，它会消耗相当大的计算资源，为了高效计算，它仅仅会选择矩阵中对应的向量中维度值为1的索引行（这句话很绕），看图就明白。</p>
+<p><img src="https://pic4.zhimg.com/80/v2-9de68e5c46e9ea1ea480e295b0cc0b87_720w.png" alt="img"></p>
+<p>我们来看一下上图中的矩阵运算，左边分别是1 x 5和5 x 3的矩阵，结果应该是1 x 3的矩阵，按照矩阵乘法的规则，结果的第一行第一列元素为<img src="https://www.zhihu.com/equation?tex=0%5Ctimes+17+++0%5Ctimes+23+++0%5Ctimes+4+++1%5Ctimes+10+++0%5Ctimes+11+=+10" alt="[公式]">，同理可得其余两个元素为12，19。如果10000个维度的矩阵采用这样的计算方式是十分低效的。</p>
+<p>为了有效地进行计算，这种稀疏状态下不会进行矩阵乘法计算，可以看到矩阵的计算的结果实际上是矩阵对应的向量中值为1的索引，上面的例子中，左边向量中取值为1的对应维度为3（下标从0开始），那么计算结果就是矩阵的第3行（下标从0开始）—— [10, 12, 19]，这样模型中的隐层权重矩阵便成了一个”查找表“（lookup table），进行矩阵计算时，直接去查输入向量中取值为1的维度下对应的那些权重值。隐层的输出就是每个输入单词的“嵌入词向量”。</p>
+<h3 id="输出层"><a href="#输出层" class="headerlink" title="输出层"></a>输出层</h3><p>那么我们的输出层，应该是什么样子的呢？从上面的图上可以看出来，输出层是一个<code>[vocab_size]</code>大小的向量，每一个值代表着输出一个词的概率。</p>
+<p>为什么要这样输出？因为我们想要知道，对于一个输入词，它接下来的词最有可能的若干个词是哪些，换句话说，我们需要知道它接下来的词的概率分布。</p>
+<p>你可以再看一看上面那张网络结构图。</p>
+<p>你会看到一个很常见的函数<strong>softmax</strong>，为什么是softmax而不是其他函数呢？不妨先看一下softmax函数长啥样：</p>
+<img src="https://ae04.alicdn.com/kf/H195a5365b8ec49509ca48cf5a6dd29bbG.png" alt="image.png" style="zoom:50%;" />
+
+<p>很显然，它的取值范围在(0,1)，并别所有的值和为1。这不就是天然的概率表示吗？</p>
+<p>当然，softmax还有一个性质，因为它函数指数操作，如果<strong>损失函数使用对数函数</strong>，那么可以抵消掉指数计算。</p>
+<p>关于更多的softmax，请看斯坦福<a target="_blank" rel="noopener" href="http://ufldl.stanford.edu/tutorial/supervised/SoftmaxRegression/">Softmax Regression</a></p>
+<h2 id="整个过程的数学表示"><a href="#整个过程的数学表示" class="headerlink" title="整个过程的数学表示"></a>整个过程的数学表示</h2><p>至此，我们已经知道了整个神经网络的结构，那么我们应该怎么用数学表示出来呢？</p>
+<p>回顾一下我们的结构图，很显然，三个层之间会有两个权值矩阵$W$，同时，两个偏置项$b$。所以我们的整个网络的构建，可以用下面的伪代码：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> tensorflow <span class="keyword">as</span> tf</span><br><span class="line"></span><br><span class="line"><span class="comment"># 假设vocab_size = 1000</span></span><br><span class="line">VOCAB_SIZE = <span class="number">1000</span></span><br><span class="line"><span class="comment"># 假设embedding_size = 300</span></span><br><span class="line">EMBEDDINGS_SIZE = <span class="number">300</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 输入单词x是一个[1,vocab_size]大小的矩阵。当然实际上我们一般会用一批单词作为输入，那么就是[N, vocab_size]的矩阵了</span></span><br><span class="line">x = tf.placeholder(tf.float32, shape=(<span class="number">1</span>,VOCAB_SIZE))</span><br><span class="line"><span class="comment"># W1是一个[vocab_size, embedding_size]大小的矩阵</span></span><br><span class="line">W1 = tf.Variable(tf.random_normal([VOCAB_SIZE, EMBEDDING_SIZE]))</span><br><span class="line"><span class="comment"># b1是一个[1，embedding_size]大小的矩阵</span></span><br><span class="line">b1 = tf.Variable(tf.random_normal([EMBEDDING_SIZE]))</span><br><span class="line"><span class="comment"># 简单的矩阵乘法和加法</span></span><br><span class="line">hidden = tf.add(tf.mutmul(x,W1),b1)</span><br><span class="line"></span><br><span class="line">W2 = tf.Variable(tf.random_normal([EMBEDDING_SIZE,VOCAB_SIZE]))</span><br><span class="line">b2 = tf.Variable(tf.random_normal([VOCAB_SIZE]))</span><br><span class="line"><span class="comment"># 输出是一个vocab_size大小的矩阵，每个值都是一个词的概率值</span></span><br><span class="line">prediction = tf.nn.softmax(tf.add(tf.mutmul(hidden,w2),b2))</span><br></pre></td></tr></table></figure>
+
+<h3 id="损失函数"><a href="#损失函数" class="headerlink" title="损失函数"></a>损失函数</h3><p>网络定义好了，我们需要选一个损失函数来使用梯度下降算法优化模型。</p>
+<p>我们的输出层，实际上就是一个softmax分类器。所以按照常规套路，损失函数就选择<strong>交叉熵损失函数</strong>。</p>
+<p>交叉熵如下：</p>
+<img src="https://ae01.alicdn.com/kf/H6a3f15ba62a0401d91b805db0b3a90c4s.png" alt="image.png" style="zoom:50%;" />
+
+<p>p,q是真实概率分布和估计概率分布</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 损失函数&amp;emsp;</span></span><br><span class="line">cross_entropy_loss = tf.reduce_mean(-tf.reduce_sum(y_label * tf.log(prediction), reduction_indices=[<span class="number">1</span>]))</span><br><span class="line"><span class="comment"># 训练操作</span></span><br><span class="line">train_op = tf.train.GradientDescentOptimizer(<span class="number">0.1</span>).minimize(cross_entropy_loss)</span><br></pre></td></tr></table></figure>
+
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" rel="tag"># 神经网络</a>
+              <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" rel="tag"># 机器学习</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/07/12/x86-x64-arm64%E7%9A%84%E5%8C%BA%E5%88%AB/" rel="prev" title="x86 x64 arm64的区别">
+      <i class="fa fa-chevron-left"></i> x86 x64 arm64的区别
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFWord2Vec%E6%A8%A1%E5%9E%8B%EF%BC%9F"><span class="nav-number">1.</span> <span class="nav-text">什么是Word2Vec模型？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%9D%E6%AD%A5%E7%90%86%E8%A7%A3Word2Vec"><span class="nav-number">2.</span> <span class="nav-text">初步理解Word2Vec</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#The-Fake-Task"><span class="nav-number">2.1.</span> <span class="nav-text">The Fake Task</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B7%B1%E5%85%A5%E4%BA%86%E8%A7%A3word2vec%E6%A8%A1%E5%9E%8B"><span class="nav-number">3.</span> <span class="nav-text">深入了解word2vec模型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Word2Vec%E6%98%AF%E4%B8%80%E4%B8%AA%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C"><span class="nav-number">3.1.</span> <span class="nav-text">Word2Vec是一个神经网络</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BE%93%E5%85%A5%E5%B1%82"><span class="nav-number">3.2.</span> <span class="nav-text">输入层</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9A%90%E8%97%8F%E5%B1%82"><span class="nav-number">3.3.</span> <span class="nav-text">隐藏层</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BE%93%E5%87%BA%E5%B1%82"><span class="nav-number">3.4.</span> <span class="nav-text">输出层</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B4%E4%B8%AA%E8%BF%87%E7%A8%8B%E7%9A%84%E6%95%B0%E5%AD%A6%E8%A1%A8%E7%A4%BA"><span class="nav-number">4.</span> <span class="nav-text">整个过程的数学表示</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0"><span class="nav-number">4.1.</span> <span class="nav-text">损失函数</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">wshenY</p>
+  <div class="site-description" itemprop="description">There are a lot of stories</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">26</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/malbeshaba" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;malbeshaba" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://weibo.com/u/6140508803" title="Weibo → https:&#x2F;&#x2F;weibo.com&#x2F;u&#x2F;6140508803" rel="noopener" target="_blank"><i class="fab fa-weibo fa-fw"></i>Weibo</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">wshenY</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

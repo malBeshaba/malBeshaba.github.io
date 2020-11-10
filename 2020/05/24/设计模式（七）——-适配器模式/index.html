@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="目的适配器模式是一种结构型设计模式， 它能使接口不兼容的对象能够相互合作。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="设计模式（七）—— 适配器模式">
+<meta property="og:url" content="http://yoursite.com/2020/05/24/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%EF%BC%88%E4%B8%83%EF%BC%89%E2%80%94%E2%80%94-%E9%80%82%E9%85%8D%E5%99%A8%E6%A8%A1%E5%BC%8F/index.html">
+<meta property="og:site_name" content="sheny&#39;s blog">
+<meta property="og:description" content="目的适配器模式是一种结构型设计模式， 它能使接口不兼容的对象能够相互合作。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://ae03.alicdn.com/kf/Hd10ab9a3b1c742328b30f3fdf2bc81dcG.png">
+<meta property="og:image" content="https://ae02.alicdn.com/kf/Hc97d34da0c2a4666a9172826a30a4aacO.png">
+<meta property="og:image" content="https://ae05.alicdn.com/kf/Hce644c8c53d5471689305f64c7088567K.png">
+<meta property="og:image" content="https://refactoringguru.cn/images/patterns/diagrams/adapter/structure-class-adapter.png">
+<meta property="og:image" content="https://refactoringguru.cn/images/patterns/diagrams/adapter/example.png">
+<meta property="article:published_time" content="2020-05-24T11:35:00.000Z">
+<meta property="article:modified_time" content="2020-05-25T11:57:55.000Z">
+<meta property="article:author" content="wshenY">
+<meta property="article:tag" content="设计模式">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://ae03.alicdn.com/kf/Hd10ab9a3b1c742328b30f3fdf2bc81dcG.png">
+
+<link rel="canonical" href="http://yoursite.com/2020/05/24/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%EF%BC%88%E4%B8%83%EF%BC%89%E2%80%94%E2%80%94-%E9%80%82%E9%85%8D%E5%99%A8%E6%A8%A1%E5%BC%8F/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>设计模式（七）—— 适配器模式 | sheny's blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">sheny's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-schedule">
+
+    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>日程表</a>
+
+  </li>
+        <li class="menu-item menu-item-catalogue">
+
+    <a href="/catalogues/" rel="section"><i class="fa fa-th-list fa-fw"></i>目录</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/05/24/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%EF%BC%88%E4%B8%83%EF%BC%89%E2%80%94%E2%80%94-%E9%80%82%E9%85%8D%E5%99%A8%E6%A8%A1%E5%BC%8F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="wshenY">
+      <meta itemprop="description" content="There are a lot of stories">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="sheny's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          设计模式（七）—— 适配器模式
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-05-24 19:35:00" itemprop="dateCreated datePublished" datetime="2020-05-24T19:35:00+08:00">2020-05-24</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-05-25 19:57:55" itemprop="dateModified" datetime="2020-05-25T19:57:55+08:00">2020-05-25</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="目的"><a href="#目的" class="headerlink" title="目的"></a>目的</h2><p><strong>适配器模式</strong>是一种结构型设计模式， 它能使接口不兼容的对象能够相互合作。</p>
+<a id="more"></a>
+
+<h2 id="思考"><a href="#思考" class="headerlink" title="思考"></a>思考</h2><p>假如你正在开发一款股票市场监测程序， 它会从不同来源下载 XML 格式的股票数据， 然后向用户呈现出美观的图表。</p>
+<p>在开发过程中， 你决定在程序中整合一个第三方智能分析函数库。 但是遇到了一个问题， 那就是分析函数库只兼容 JSON 格式的数据。</p>
+<p><img src="https://ae03.alicdn.com/kf/Hd10ab9a3b1c742328b30f3fdf2bc81dcG.png" alt="image.png"></p>
+<p>你可以修改程序库来支持 XML。 但是， 这可能需要修改部分依赖该程序库的现有代码。 甚至还有更糟糕的情况， 你可能根本没有程序库的源代码， 从而无法对其进行修改。</p>
+<h2 id="方案"><a href="#方案" class="headerlink" title="方案"></a>方案</h2><p>你可以创建一个<em>适配器</em>。 这是一个特殊的对象， 能够转换对象接口， 使其能与其他对象进行交互。</p>
+<p>适配器模式通过封装对象将复杂的转换过程隐藏于幕后。 被封装的对象甚至察觉不到适配器的存在。 例如， 你可以使用一个将所有数据转换为英制单位 （如英尺和英里） 的适配器封装运行于米和千米单位制中的对象。</p>
+<p>适配器不仅可以转换不同格式的数据， 其还有助于采用不同接口的对象之间的合作。 它的运作方式如下：</p>
+<ol>
+<li>适配器实现与其中一个现有对象兼容的接口。</li>
+<li>现有对象可以使用该接口安全地调用适配器方法。</li>
+<li>适配器方法被调用后将以另一个对象兼容的格式和顺序将请求传递给该对象。</li>
+</ol>
+<p>有时你甚至可以创建一个双向适配器来实现双向转换调用。</p>
+<img src="https://ae02.alicdn.com/kf/Hc97d34da0c2a4666a9172826a30a4aacO.png" alt="image.png" style="zoom:50%;" />
+
+<p>让我们回到股票市场程序。 为了解决数据格式不兼容的问题， 你可以为分析函数库中的每个类创建将 XML 转换为 JSON 格式的适配器， 然后让客户端仅通过这些适配器来与函数库进行交流。 当某个适配器被调用时， 它会将传入的 XML 数据转换为 JSON 结构， 并将其传递给被封装分析对象的相应方法。</p>
+<h2 id="结构"><a href="#结构" class="headerlink" title="结构"></a>结构</h2><ol>
+<li>客户端 （Client） 是包含当前程序业务逻辑的类。</li>
+<li>客户端接口 （Client Interface） 描述了其他类与客户端代码合作时必须遵循的协议。</li>
+<li>服务 （Service） 中有一些功能类 （通常来自第三方或遗留系统）。 客户端与其接口不兼容， 因此无法直接调用其功能。</li>
+<li>适配器 （Adapter） 是一个可以同时与客户端和服务交互的类： 它在实现客户端接口的同时封装了服务对象。 适配器接受客户端通过适配器接口发起的调用， 并将其转换为适用于被封装服务对象的调用。</li>
+<li>客户端代码只需通过接口与适配器交互即可， 无需与具体的适配器类耦合。 因此， 你可以向程序中添加新类型的适配器而无需修改已有代码。 这在服务类的接口被更改或替换时很有用： 你无需修改客户端代码就可以创建新的适配器类。</li>
+</ol>
+<img src="https://ae05.alicdn.com/kf/Hce644c8c53d5471689305f64c7088567K.png" alt="image.png" style="zoom:50%;" />
+
+<h4 id="类适配器"><a href="#类适配器" class="headerlink" title="类适配器"></a>类适配器</h4><p>这一实现使用了继承机制： 适配器同时继承两个对象的接口。 请注意， 这种方式仅能在支持多重继承的编程语言中实现， 例如 C++。</p>
+<p><strong>类适配器</strong>不需要封装任何对象， 因为它同时继承了客户端和服务的行为。 适配功能在重写的方法中完成。 最后生成的适配器可替代已有的客户端类进行使用。</p>
+<p><img src="https://refactoringguru.cn/images/patterns/diagrams/adapter/structure-class-adapter.png" alt="适配器设计模式（类适配器）"></p>
+<h2 id="举例（伪代码）"><a href="#举例（伪代码）" class="headerlink" title="举例（伪代码）"></a>举例（伪代码）</h2><p><img src="https://refactoringguru.cn/images/patterns/diagrams/adapter/example.png" alt="适配器模式结构的示例"></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 假设你有两个接口相互兼容的类：圆孔（Round­Hole）和圆钉（Round­Peg）。</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">RoundHole</span> <span class="title">is</span></span></span><br><span class="line"><span class="class">    <span class="title">constructor</span> <span class="title">RoundHole</span>(<span class="title">radius</span>) </span>&#123; ... &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function">method <span class="title">getRadius</span><span class="params">()</span> is</span></span><br><span class="line"><span class="function">        <span class="comment">// 返回孔的半径。</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">    method <span class="title">fits</span><span class="params">(peg: RoundPeg)</span> is</span></span><br><span class="line"><span class="function">        return <span class="keyword">this</span>.<span class="title">getRadius</span><span class="params">()</span> &gt;</span>= peg.radius()</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">RoundPeg</span> <span class="title">is</span></span></span><br><span class="line"><span class="class">    <span class="title">constructor</span> <span class="title">RoundPeg</span>(<span class="title">radius</span>) </span>&#123; ... &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function">method <span class="title">getRadius</span><span class="params">()</span> is</span></span><br><span class="line"><span class="function">        <span class="comment">// 返回钉子的半径。</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="comment">// 但还有一个不兼容的类：方钉（Square­Peg）。</span></span></span><br><span class="line"><span class="function">class SquarePeg is</span></span><br><span class="line"><span class="function">    constructor <span class="title">SquarePeg</span><span class="params">(width)</span> </span>&#123; ... &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function">method <span class="title">getWidth</span><span class="params">()</span> is</span></span><br><span class="line"><span class="function">        <span class="comment">// 返回方钉的宽度。</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="comment">// 适配器类让你能够将方钉放入圆孔中。它会对 RoundPeg 类进行扩展，以接收适</span></span></span><br><span class="line"><span class="function"><span class="comment">// 配器对象作为圆钉。</span></span></span><br><span class="line"><span class="function">class SquarePegAdapter extends RoundPeg is</span></span><br><span class="line"><span class="function">    <span class="comment">// 在实际情况中，适配器中会包含一个 SquarePeg 类的实例。</span></span></span><br><span class="line"><span class="function">    <span class="keyword">private</span> field peg: SquarePeg</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">    constructor <span class="title">SquarePegAdapter</span><span class="params">(peg: SquarePeg)</span> is</span></span><br><span class="line"><span class="function">        <span class="keyword">this</span>.peg </span>= peg</span><br><span class="line"></span><br><span class="line">    <span class="function">method <span class="title">getRadius</span><span class="params">()</span> is</span></span><br><span class="line"><span class="function">        <span class="comment">// 适配器会假扮为一个圆钉，</span></span></span><br><span class="line"><span class="function">        <span class="comment">// 其半径刚好能与适配器实际封装的方钉搭配起来。</span></span></span><br><span class="line"><span class="function">        return peg.<span class="title">getWidth</span><span class="params">()</span> * Math.<span class="title">sqrt</span><span class="params">(<span class="number">2</span>)</span> / 2</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="comment">// 客户端代码中的某个位置。</span></span></span><br><span class="line"><span class="function">hole </span>= <span class="keyword">new</span> RoundHole(<span class="number">5</span>)</span><br><span class="line">rpeg = <span class="keyword">new</span> RoundPeg(<span class="number">5</span>)</span><br><span class="line">hole.fits(rpeg) <span class="comment">// true</span></span><br><span class="line"></span><br><span class="line">small_sqpeg = <span class="keyword">new</span> SquarePeg(<span class="number">5</span>)</span><br><span class="line">large_sqpeg = <span class="keyword">new</span> SquarePeg(<span class="number">10</span>)</span><br><span class="line">hole.fits(small_sqpeg) <span class="comment">// 此处无法编译（类型不一致）。</span></span><br><span class="line"></span><br><span class="line">small_sqpeg_adapter = <span class="keyword">new</span> SquarePegAdapter(small_sqpeg)</span><br><span class="line">large_sqpeg_adapter = <span class="keyword">new</span> SquarePegAdapter(large_sqpeg)</span><br><span class="line">hole.fits(small_sqpeg_adapter) <span class="comment">// true</span></span><br><span class="line">hole.fits(large_sqpeg_adapter) <span class="comment">// false</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="适配器模式适合应用场景"><a href="#适配器模式适合应用场景" class="headerlink" title="适配器模式适合应用场景"></a>适配器模式适合应用场景</h2><p> <strong><em>当你希望使用某个类， 但是其接口与其他代码不兼容时， 可以使用适配器类。</em></strong></p>
+<blockquote>
+<p>适配器模式允许你创建一个中间层类， 其可作为代码与遗留类、 第三方类或提供怪异接口的类之间的转换器。</p>
+</blockquote>
+<p><strong><em>如果您需要服用这样一些类， 他们处于同一个继承体系， 并且他们又有了额外的一些共同的方法， 但是这些共同的方法不是所有在这一继承体系中的子类所具有的共性。</em></strong></p>
+<blockquote>
+<p>你可以扩展每个子类， 将缺少的功能添加到新的子类中。 但是， 你必须在所有新子类中重复添加这些代码， 这样会使得代码有坏味道。</p>
+<p>将缺失功能添加到一个适配器类中是一种优雅得多的解决方案。 然后你可以将缺少功能的对象封装在适配器中， 从而动态地获取所需功能。 如要这一点正常运作， 目标类必须要有通用接口， 适配器的成员变量应当遵循该通用接口。 这种方式同装饰模式非常相似。</p>
+</blockquote>
+<h2 id="实现方式"><a href="#实现方式" class="headerlink" title="实现方式"></a>实现方式</h2><ol>
+<li>确保至少有两个类的接口不兼容：<ul>
+<li>一个无法修改 （通常是第三方、 遗留系统或者存在众多已有依赖的类） 的功能性<em>服务</em>类。</li>
+<li>一个或多个将受益于使用服务类的<em>客户端</em>类。</li>
+</ul>
+</li>
+<li>声明客户端接口， 描述客户端如何与服务交互。</li>
+<li>创建遵循客户端接口的适配器类。 所有方法暂时都为空。</li>
+<li>在适配器类中添加一个成员变量用于保存对于服务对象的引用。 通常情况下会通过构造函数对该成员变量进行初始化， 但有时在调用其方法时将该变量传递给适配器会更方便。</li>
+<li>依次实现适配器类客户端接口的所有方法。 适配器会将实际工作委派给服务对象， 自身只负责接口或数据格式的转换。</li>
+<li>客户端必须通过客户端接口使用适配器。 这样一来， 你就可以在不影响客户端代码的情况下修改或扩展适配器。</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" rel="tag"># 设计模式</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/05/24/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%EF%BC%88%E5%85%AD%EF%BC%89%E2%80%94%E2%80%94-%E5%8D%95%E4%BE%8B%E6%A8%A1%E5%BC%8F/" rel="prev" title="设计模式（六）—— 单例模式">
+      <i class="fa fa-chevron-left"></i> 设计模式（六）—— 单例模式
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/05/25/%E6%B3%A8%E8%A7%A3%E7%AE%80%E5%8C%96%E4%BB%A3%E7%A0%81%EF%BC%9FLombok%EF%BC%81/" rel="next" title="注解简化代码？Lombok！">
+      注解简化代码？Lombok！ <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%AE%E7%9A%84"><span class="nav-number">1.</span> <span class="nav-text">目的</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%9D%E8%80%83"><span class="nav-number">2.</span> <span class="nav-text">思考</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%B9%E6%A1%88"><span class="nav-number">3.</span> <span class="nav-text">方案</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%93%E6%9E%84"><span class="nav-number">4.</span> <span class="nav-text">结构</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%B1%BB%E9%80%82%E9%85%8D%E5%99%A8"><span class="nav-number">4.0.1.</span> <span class="nav-text">类适配器</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BE%E4%BE%8B%EF%BC%88%E4%BC%AA%E4%BB%A3%E7%A0%81%EF%BC%89"><span class="nav-number">5.</span> <span class="nav-text">举例（伪代码）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%80%82%E9%85%8D%E5%99%A8%E6%A8%A1%E5%BC%8F%E9%80%82%E5%90%88%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="nav-number">6.</span> <span class="nav-text">适配器模式适合应用场景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E6%96%B9%E5%BC%8F"><span class="nav-number">7.</span> <span class="nav-text">实现方式</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">wshenY</p>
+  <div class="site-description" itemprop="description">There are a lot of stories</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">26</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/malbeshaba" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;malbeshaba" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://weibo.com/u/6140508803" title="Weibo → https:&#x2F;&#x2F;weibo.com&#x2F;u&#x2F;6140508803" rel="noopener" target="_blank"><i class="fab fa-weibo fa-fw"></i>Weibo</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">wshenY</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
